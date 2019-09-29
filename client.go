@@ -57,7 +57,7 @@ func (ws *ClientService) SetProxy(uri string) error {
 	return nil
 }
 
-func (ws *ClientService) Post(uri string, data map[string]interface{}) (response map[string]interface{}, err error) {
+func (ws *ClientService) Post(uri string, data map[string]interface{}) (response interface{}, err error) {
 	if uri == "" {
 		err = fmt.Errorf("Unable to resolve uri")
 		return
@@ -111,18 +111,6 @@ func (ws *ClientService) Post(uri string, data map[string]interface{}) (response
 	if err = json.Unmarshal(bRes, &response); err != nil {
 		return
 	}
-
-	return
-}
-
-func (ws *ClientService) ServiceBuy(mdn, serviceCode string) (response map[string]interface{}, err error) {
-
-	data := map[string]interface{}{
-		"mdn":         NormalizeMDN(mdn),
-		"serviceCode": serviceCode,
-	}
-
-	response, err = ws.Post("/crm/service/buy", data)
 
 	return
 }
