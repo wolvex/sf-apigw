@@ -1,31 +1,38 @@
 package apigw
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
-type ServiceRes struct {
-	ServiceName   string `json:"serviceCode,omitempty"`
+type ServiceData struct {
+	Mdn           string `json:"mdn,omitempty"`
+	ServiceCode   string `json:"serviceCode,omitempty"`
 	EffectiveDate string `json:"effDate,omitempty"`
 	ExpiryDate    string `json:"expDate,omitempty"`
 	TransactionID string `json:"transactionId,omitempty"`
+	ReturnCode    string `json:"returnCode,omitempty"`
+	ResultMsg     string `json:"resultMsg,omitempty"`
 }
 
-func (ws *ClientService) ServiceBuy(mdn, serviceCode string) (response ServiceRes, err error) {
+func (ws *ClientService) AddService(mdn, serviceCode string) (response ServiceData, err error) {
 
 	data := map[string]interface{}{
 		"mdn":         NormalizeMDN(mdn),
 		"serviceCode": serviceCode,
 	}
 
-	var res interface{}
+	var res []byte
 	if res, err = ws.Post("/crm/service/buy", data); err != nil {
 		return
 	}
 
-	var ok bool
-	if response, ok = res.(ServiceRes); !ok {
-		err = fmt.Errorf("Invalid response format")
+	if err = json.Unmarshal(res, &response); err != nil {
 		return
+	}
 
+	if response.TransactionID == "" || response.TransactionID == "map[-nil:true]" {
+		err = fmt.Errorf("Failure adding service: %#v", response)
 	}
 
 	return

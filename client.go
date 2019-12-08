@@ -18,23 +18,22 @@ import (
 
 type ClientServices interface {
 	New(url string, username string, password string, timeout int64) ClientService
-	SetEnv(env string)
 	SetProxy(uri string)
-	NumberShift(mdn string, newMdn string) (map[string]interface{}, error)
-	GetSubInfo(mdn string) (map[string]interface{}, error)
 }
 
 type ClientService struct {
 	BaseURL   string
+	Version   string
 	SecretKey string
 	KeyID     string
 	Timeout   int
 	Transport http.Transport
 }
 
-func New(baseUrl, secretKey, keyId string, timeout int) *ClientService {
+func New(baseUrl, version, keyId, secretKey string, timeout int) *ClientService {
 	api := &ClientService{
 		BaseURL:   baseUrl,
+		Version:   version,
 		SecretKey: secretKey,
 		KeyID:     keyId,
 		Timeout:   timeout,
@@ -57,11 +56,13 @@ func (ws *ClientService) SetProxy(uri string) error {
 	return nil
 }
 
-func (ws *ClientService) Post(uri string, data map[string]interface{}) (response interface{}, err error) {
+func (ws *ClientService) Post(uri string, data map[string]interface{}) (response []byte, err error) {
 	if uri == "" {
 		err = fmt.Errorf("Unable to resolve uri")
 		return
 	}
+
+	path := ws.BaseURL + uri
 
 	var payload []byte
 	payload, err = json.Marshal(data)
@@ -69,24 +70,36 @@ func (ws *ClientService) Post(uri string, data map[string]interface{}) (response
 		return
 	}
 
-	req, err := http.NewRequest("POST", uri, bytes.NewBufferString(string(payload[:])))
+	req, err := http.NewRequest("POST", path, bytes.NewBufferString(string(payload[:])))
 	if err != nil {
 		return
 	}
 
+	loc, _ := time.LoadLocation("MST")
+	date := time.Now().In(loc).Format("Mon, 02 Jan 2006 15:04:05 MST")
+
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Date", time.Now().Format("Mon, 02 Jan 2006 15:04:05 MST"))
+	req.Header.Add("X-Version", ws.Version)
+	req.Header.Add("Date", date)
 
 	//Adds authorization headers
 	if ws.SecretKey != "" && ws.KeyID != "" {
 		// Prepare the signature to include those headers:
+		//data := "(request-target): post " + uri + "\n"
+		data := "date: " + date
+		//fmt.Printf("SECRET: [%s] , DATA: [%s]\n", ws.SecretKey, data)
+
 		h := hmac.New(sha256.New, []byte(ws.SecretKey))
-		h.Write([]byte("date: " + req.Header.Get("Date")))
+		h.Write([]byte(data))
 
 		// Base64 and URL Encode the string
 		sigString := base64.StdEncoding.EncodeToString(h.Sum(nil))
 		encodedString := url.QueryEscape(sigString)
-		req.Header.Add("Authorization", "Signature keyId=\""+ws.KeyID+"\",algorithm=\"hmac-sha256\",signature=\""+encodedString+"\"")
+
+		//fmt.Printf("BASE64: [%s] , ESCAPE: [%s]\n", sigString, encodedString)
+
+		//req.Header.Add("Authorization", "Signature keyid="+ws.KeyID+",algorithm=hmac-sha256,headers=date,signature="+encodedString)
+		req.Header.Add("Authorization", "Signature keyid="+ws.KeyID+",algorithm=hmac-sha256,signature="+encodedString)
 	}
 
 	client := &http.Client{
@@ -95,7 +108,7 @@ func (ws *ClientService) Post(uri string, data map[string]interface{}) (response
 	}
 
 	requestDump, _ := httputil.DumpRequest(req, true)
-	fmt.Println(string(requestDump))
+	fmt.Printf("HTTP Request:\n%q\n", requestDump)
 
 	res, err := client.Do(req)
 	if err != nil {
@@ -103,14 +116,20 @@ func (ws *ClientService) Post(uri string, data map[string]interface{}) (response
 	}
 	defer res.Body.Close()
 
-	bRes, err := ioutil.ReadAll(res.Body)
+	responseDump, _ := httputil.DumpResponse(res, true)
+	fmt.Printf("HTTP Response:\n%q\n", responseDump)
+
+	response, err = ioutil.ReadAll(res.Body)
 	if err != nil {
 		return
 	}
 
-	if err = json.Unmarshal(bRes, &response); err != nil {
-		return
-	}
+	//fmt.Println(string(bRes))
+	//return bRes, nil
+
+	//if err = json.Unmarshal(bRes, &response); err != nil {
+	//	return
+	//}
 
 	return
 }
