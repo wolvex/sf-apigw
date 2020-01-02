@@ -11,6 +11,7 @@ type DISMessage struct {
 	ReferenceNo   string `yaml:"referenceNo,omitempty"`
 	QRCode        string `yaml:"qrcode,omitempty"`
 	Error         string `yaml:"error,omitempty"`
+	Code          int    `yaml:"Code,omitempty"`
 }
 
 func (ws *ClientService) DISOrderPayment(mdn, bankCode, referenceNo string, transactionId int) (response DISMessage, err error) {
