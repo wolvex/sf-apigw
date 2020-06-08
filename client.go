@@ -79,8 +79,10 @@ func (ws *ClientService) Post(uri string, data map[string]interface{}) (response
 	date := time.Now().In(loc).Format("Mon, 02 Jan 2006 15:04:05 MST")
 
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("X-Version", ws.Version)
 	req.Header.Add("Date", date)
+	if ws.Version != "" {
+		req.Header.Add("X-Version", ws.Version)
+	}
 
 	//Adds authorization headers
 	if ws.SecretKey != "" && ws.KeyID != "" {
@@ -108,19 +110,23 @@ func (ws *ClientService) Post(uri string, data map[string]interface{}) (response
 	}
 
 	requestDump, _ := httputil.DumpRequest(req, true)
-	fmt.Printf("HTTP Request:\n%q\n", requestDump)
+	fmt.Printf("HTTP Request: %q\n", requestDump)
 
-	res, err := client.Do(req)
+	var res *http.Response
+	res, err = client.Do(req)
 	if err != nil {
+		fmt.Printf("Exception caught %#v\n", err)
 		return
 	}
 	defer res.Body.Close()
 
-	responseDump, _ := httputil.DumpResponse(res, true)
-	fmt.Printf("HTTP Response:\n%q\n", responseDump)
+	if responseDump, e := httputil.DumpResponse(res, true); e == nil {
+		fmt.Printf("HTTP Response: %q\n", responseDump)
+	}
 
 	response, err = ioutil.ReadAll(res.Body)
 	if err != nil {
+		fmt.Printf("Exception caught %#v\n", err)
 		return
 	}
 

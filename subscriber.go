@@ -11,6 +11,8 @@ type SubscriberData struct {
 	Mdn               string `json:"mdn,omitempty"`
 	State             string `json:"state,omitempty"`
 	Imsi              string `json:"imsi,omitempty"`
+	PUK1              string `json:"puk1,omitempty"`
+	PUK2              string `json:"puk2,omitempty"`
 	MarketingCategory string `json:"marketingCategory,omitempty"`
 	FraudLocked       string `json:"fraudLocked,omitempty"`
 	AccountNumber     string `json:"acctNbr,omitempty"`
