@@ -101,7 +101,7 @@ func (ws *ClientService) Post(uri string, data map[string]interface{}) (response
 		//fmt.Printf("BASE64: [%s] , ESCAPE: [%s]\n", sigString, encodedString)
 
 		//req.Header.Add("Authorization", "Signature keyid="+ws.KeyID+",algorithm=hmac-sha256,headers=date,signature="+encodedString)
-		req.Header.Add("Authorization", "Signature keyid="+ws.KeyID+",algorithm=hmac-sha256,signature="+encodedString)
+		req.Header.Add("Authorization", "Signature keyid=\""+ws.KeyID+"\",algorithm=\"hmac-sha256\",signature=\""+encodedString+"\"")
 	}
 
 	client := &http.Client{
