@@ -6,8 +6,8 @@ import (
 )
 
 type AddOns struct {
-	ServiceCode string  `json:"ServiceCode,omitempty"`
-	Price       float64 `yaml:"Price,omitempty"`
+	ServiceCode string  `json:"serviceCode,omitempty"`
+	Price       float64 `yaml:"price,omitempty"`
 }
 
 type DISMessage struct {
