@@ -5,23 +5,23 @@ import (
 	"fmt"
 )
 
-type AddOns struct {
+type AddOn struct {
 	ServiceCode string  `json:"serviceCode,omitempty"`
 	Price       float64 `yaml:"price,omitempty"`
 }
 
 type DISMessage struct {
-	Mdn            string   `json:"mdn,omitempty"`
-	TransactionID  int      `yaml:"transactionId,omitempty"`
-	BankCode       string   `yaml:"bankCode,omitempty"`
-	ReferenceNo    string   `yaml:"referenceNo,omitempty"`
-	QRCode         string   `yaml:"qrcode,omitempty"`
-	ActivationCode string   `yaml:"activationCode,omitempty"`
-	Error          string   `yaml:"error,omitempty"`
-	Status         string   `yaml:"status,omitempty"`
-	Code           int      `yaml:"Code,omitempty"`
-	Price          float64  `yaml:"price,omitempty"`
-	AddOn          []AddOns `yaml:"addons,omitempty"`
+	Mdn            string  `json:"mdn,omitempty"`
+	TransactionID  int     `yaml:"transactionId,omitempty"`
+	BankCode       string  `yaml:"bankCode,omitempty"`
+	ReferenceNo    string  `yaml:"referenceNo,omitempty"`
+	QRCode         string  `yaml:"qrcode,omitempty"`
+	ActivationCode string  `yaml:"activationCode,omitempty"`
+	Error          string  `yaml:"error,omitempty"`
+	Status         string  `yaml:"status,omitempty"`
+	Code           int     `yaml:"Code,omitempty"`
+	Price          float64 `yaml:"price,omitempty"`
+	AddOns         []AddOn `yaml:"addons,omitempty"`
 }
 
 func (ws *ClientService) DISOrderPayment(mdn, bankCode, referenceNo string, transactionId int) (response DISMessage, err error) {
